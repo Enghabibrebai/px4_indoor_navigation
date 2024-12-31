@@ -1,15 +1,9 @@
-"""
-Code is modified from the source on
-https://github.com/ivmech/ivPID/blob/master/PID.py
-"""
 import time
 
 class PID:
-    """PID Controller
-    """
+    """PID Controller"""
 
     def __init__(self, P=0.2, I=0.0, D=0.0):
-
         self.Kp = P
         self.Ki = I
         self.Kd = D
@@ -18,8 +12,7 @@ class PID:
         self.current_time = time.time()
         self.last_time = self.current_time
 
-	self.I_TERM_IS_ACTIVE = False
-
+        self.I_TERM_IS_ACTIVE = False
         self.clear()
 
     def clear(self):
@@ -38,26 +31,21 @@ class PID:
         self.output = 0.0
 
     def update(self, feedback_value):
-        """Calculates PID value for given reference feedback
-        .. math::
-            u(t) = K_p e(t) + K_i \int_{0}^{t} e(t)dt + K_d {de}/{dt}
-        .. figure:: images/pid_1.png
-           :align:   center
-           Test PID with Kp=1.2, Ki=1, Kd=0.001 (test_pid.py)
-        """
+        """Calculates PID value for given reference feedback"""
         error = self.SetPoint - feedback_value
 
         self.current_time = time.time()
         delta_time = self.current_time - self.last_time
         delta_error = error - self.last_error
 
-        if (delta_time >= self.sample_time):
+        if delta_time >= self.sample_time:
             self.PTerm = self.Kp * error
             self.ITerm += error * delta_time
 
-            if (self.ITerm < -self.windup_guard):
+            # Windup Guard
+            if self.ITerm < -self.windup_guard:
                 self.ITerm = -self.windup_guard
-            elif (self.ITerm > self.windup_guard):
+            elif self.ITerm > self.windup_guard:
                 self.ITerm = self.windup_guard
 
             self.DTerm = 0.0
@@ -67,42 +55,33 @@ class PID:
             # Remember last time and last error for next calculation
             self.last_time = self.current_time
             self.last_error = error
+
+            # If I_TERM_IS_ACTIVE is False, reset the integral term
             if not self.I_TERM_IS_ACTIVE:
                 self.ITerm = 0.0
 
             self.output = self.PTerm + (self.Ki * self.ITerm) + (self.Kd * self.DTerm)
 
     def setKp(self, proportional_gain):
-        """Determines how aggressively the PID reacts to the current error with setting Proportional Gain"""
+        """Sets the proportional gain"""
         self.Kp = proportional_gain
 
     def setKi(self, integral_gain):
-        """Determines how aggressively the PID reacts to the current error with setting Integral Gain"""
+        """Sets the integral gain"""
         self.Ki = integral_gain
 
     def setKd(self, derivative_gain):
-        """Determines how aggressively the PID reacts to the current error with setting Derivative Gain"""
+        """Sets the derivative gain"""
         self.Kd = derivative_gain
 
     def setWindup(self, windup):
-        """Integral windup, also known as integrator windup or reset windup,
-        refers to the situation in a PID feedback controller where
-        a large change in setpoint occurs (say a positive change)
-        and the integral terms accumulates a significant error
-        during the rise (windup), thus overshooting and continuing
-        to increase as this accumulated error is unwound
-        (offset by errors in the other direction).
-        The specific problem is the excess overshooting.
-        """
+        """Sets the windup guard"""
         self.windup_guard = windup
 
-	def resetITerm(self):
-		""" Resets the ITerm to zero
-		"""
-		self.ITerm = 0.0
+    def resetITerm(self):
+        """Resets the integral term"""
+        self.ITerm = 0.0
 
     def setSampleTime(self, sample_time):
-        """PID that should be updated at a regular interval.
-        Based on a pre-determined sampe time, the PID decides if it should compute or return immediately.
-        """
+        """Sets the sample time"""
         self.sample_time = sample_time

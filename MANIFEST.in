@@ -1,0 +1,2 @@
+# Include all Python files in the px4_indoor_navigation directory
+include px4_indoor_navigation/*.py
